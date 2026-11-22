@@ -1,0 +1,980 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypePro Ultimate - Typing Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+:root{
+--bg:#f5f6fc;--card:#fff;--text:#20243a;
+--muted:#777f93;--primary:#6558e9;
+--soft:#eeedff;--border:#e7e9f1;
+}
+body.dark{
+--bg:#101525;--card:#1b2437;--text:#f5f6ff;
+--muted:#aeb7cb;--soft:#292b4c;--border:#303b50;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;transition:.2s}
+header{background:var(--card);padding:17px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border)}
+.logo{font-size:25px;font-weight:bold;color:var(--primary)}
+button,input,select,textarea{font:inherit;padding:11px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text)}
+button{cursor:pointer}
+button:hover{opacity:.8}
+.primary{background:var(--primary);color:white;border:0}
+.container{max-width:1250px;margin:auto;padding:22px 16px}
+.hero{background:linear-gradient(120deg,#6558e9,#a16bf0);padding:32px;border-radius:18px;color:white;margin-bottom:22px}
+.hero h1{font-size:30px;margin-bottom:12px}
+.hero p{line-height:1.6}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+.nav button.active{background:var(--primary);color:white}
+.page{display:none}
+.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);padding:19px;border-radius:14px;margin-bottom:15px}
+.card h2{color:var(--primary);margin-bottom:12px}
+.stat{font-size:27px;font-weight:bold;color:var(--primary);margin:10px 0}
+.muted{font-size:13px;color:var(--muted);line-height:1.6}
+.settings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:15px 0}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}
+.field select,.field input{width:100%}
+.passage{background:var(--soft);padding:20px;border-radius:12px;font-size:19px;line-height:2;margin:15px 0}
+textarea{width:100%;height:130px;resize:vertical;font-size:17px}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}
+.progress{height:8px;background:var(--border);border-radius:10px;overflow:hidden}
+.progress div{height:100%;width:0;background:var(--primary)}
+.result{display:none;background:var(--soft);padding:18px;border-radius:12px;margin-top:15px}
+.keyboard{display:grid;grid-template-columns:1fr;gap:5px;margin-top:15px}
+.keyboard .finger-row{grid-column:1/-1}
+.key{background:var(--soft);padding:12px 3px;text-align:center;border-radius:6px;font-size:12px}
+.key.good{background:#c9f3d7;color:#14532d}
+.key.bad{background:#ffd6d6;color:#8b1717}
+body.dark .key.good{background:#225238;color:#d0ffe0}
+body.dark .key.bad{background:#652c39;color:#ffe0e5}
+.bot-layout{display:grid;grid-template-columns:1fr 300px;gap:15px}
+.chat{height:350px;overflow:auto;background:var(--soft);border-radius:12px;padding:15px;margin-bottom:12px}
+.message{padding:12px;border-radius:12px;margin:8px 0;max-width:90%;line-height:1.5;font-size:14px}
+.bot-msg{background:var(--card);border:1px solid var(--border)}
+.user-msg{background:var(--primary);color:white;margin-left:auto}
+.lesson-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lesson{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:12px}
+.lesson h3{margin-bottom:9px}
+.lesson p{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.chart{height:270px;position:relative}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+td,th{padding:12px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+footer{text-align:center;padding:25px;color:var(--muted)}
+@media(max-width:800px){
+.grid{grid-template-columns:repeat(2,1fr)}
+.settings{grid-template-columns:repeat(2,1fr)}
+.bot-layout{grid-template-columns:1fr}
+.lesson-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+.settings,.lesson-grid{grid-template-columns:1fr}
+.hero h1{font-size:23px}
+.keyboard{grid-template-columns:repeat(5,1fr)}
+}
+
+/* ADVANCED FINGER GUIDE */
+.finger-layout{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.finger-hand{background:var(--soft);border:1px solid var(--border);border-radius:12px;padding:16px}
+.finger-hand h3{margin-bottom:10px}
+.finger-hand p{line-height:2;font-size:14px}
+.finger-legend{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.finger-legend span{padding:7px 9px;border-radius:7px;color:#20243a;font-size:12px;font-weight:bold}
+.finger-board{display:grid;gap:6px;margin:18px auto;max-width:900px}
+.finger-row{display:flex;justify-content:center;gap:5px}
+.finger-key{min-width:36px;height:47px;border-radius:7px;border:2px solid transparent;
+ display:flex;align-items:center;justify-content:center;flex-direction:column;
+ font-weight:bold;font-size:13px;color:#20243a;position:relative}
+.finger-key small{font-size:8px;font-weight:normal}
+.finger-key.active{outline:3px solid #f4b400;transform:translateY(-3px)}
+.finger-key.done{box-shadow:inset 0 0 0 2px #168b55}
+.finger-key.space{width:42%;height:42px;background:#d9deeb}
+.finger-key.wide{min-width:66px}
+.finger-f1{background:#ffb8b8}.finger-f2{background:#ffd0a3}
+.finger-f3{background:#fff0a6}.finger-f4{background:#bce9c6}
+.finger-f5{background:#a9dcff}.finger-f6{background:#c9c0ff}
+.finger-f7{background:#f3bde8}.finger-f8{background:#cbd4df}
+.finger-status{padding:13px;border-radius:10px;background:var(--soft);margin-top:12px;line-height:1.6}
+.finger-status.good{border-left:5px solid #16a36a}
+.finger-status.warn{border-left:5px solid #e3a52d}
+.finger-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+@media(max-width:800px){.finger-layout{grid-template-columns:1fr}}
+@media(max-width:480px){.finger-key{min-width:24px;height:39px;font-size:10px}.finger-key.wide{min-width:40px}.finger-key small{font-size:7px}}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">⌨️ TypePro Ultimate</div>
+<div class="actions">
+<button onclick="toggleTheme()">🌙 / ☀️</button>
+<button onclick="toggleSound()" id="soundBtn">🔊 Sound ON</button>
+</div>
+</header>
+
+<div class="container">
+
+<div class="hero">
+<h1>Master Your Typing Skills 🚀</h1>
+<p>Learn typing, improve speed, practice for exams and prepare for your professional career.</p>
+<br>
+<button onclick="tab('test')">Start Typing →</button>
+<button onclick="tab('bot')">Meet TypeBot 🤖</button>
+<button onclick="tab('finger')">🖐 Finger Trainer</button>
+</div>
+
+<div class="grid">
+<div class="card"><p class="muted">Personal Best</p><div class="stat" id="best">0</div><p class="muted">WPM</p></div>
+<div class="card"><p class="muted">Average Speed</p><div class="stat" id="avg">0</div><p class="muted">WPM</p></div>
+<div class="card"><p class="muted">Tests Completed</p><div class="stat" id="total">0</div><p class="muted">Tests</p></div>
+<div class="card"><p class="muted">Best Accuracy</p><div class="stat" id="bestAcc">0%</div><p class="muted">Accuracy</p></div>
+</div>
+
+<div class="nav">
+<button class="active" onclick="tab('test',this)">⌨️ Test</button>
+<button onclick="tab('bot',this)">🤖 TypeBot</button>
+<button onclick="tab('learn',this)">📚 Academy</button>
+<button onclick="tab('finger',this)">🖐 Advanced Fingers</button>
+<button onclick="tab('weak',this)">🎯 Weak Keys</button>
+<button onclick="tab('analytics',this)">📊 Analytics</button>
+<button onclick="tab('history',this)">📜 History</button>
+<button onclick="tab('challenge',this)">🏆 Challenge</button>
+</div>
+
+<!-- TEST -->
+<section id="test" class="page active">
+<div class="card">
+<h2>Typing Speed Test</h2>
+<div class="settings">
+<div class="field"><label>Duration</label>
+<select id="duration">
+<option value="30">30 Seconds</option>
+<option value="60" selected>60 Seconds</option>
+<option value="120">2 Minutes</option>
+<option value="300">5 Minutes</option>
+<option value="custom">Custom</option>
+</select></div>
+<div class="field" id="customBox" style="display:none">
+<label>Custom Seconds</label><input type="number" id="custom" value="90" min="5" max="3600">
+</div>
+<div class="field"><label>Difficulty</label>
+<select id="level">
+<option value="beginner">Beginner</option>
+<option value="intermediate" selected>Intermediate</option>
+<option value="advanced">Advanced</option>
+<option value="expert">Expert</option>
+</select></div>
+<div class="field"><label>Language</label>
+<select id="lang">
+<option value="en">English</option>
+<option value="hi">Hindi</option>
+<option value="mr">Marathi</option>
+</select></div>
+<div class="field"><label>Mode</label>
+<select id="mode">
+<option value="normal">Normal Text</option>
+<option value="numbers">Numbers</option>
+<option value="symbols">Symbols</option>
+<option value="mixed">Mixed</option>
+</select></div>
+<div class="field"><label>Font Size</label>
+<select id="font">
+<option value="16px">Small</option>
+<option value="19px" selected>Medium</option>
+<option value="24px">Large</option>
+</select></div>
+</div>
+
+<div class="grid">
+<div class="card"><p>Time</p><div class="stat" id="time">60</div></div>
+<div class="card"><p>WPM</p><div class="stat" id="wpm">0</div></div>
+<div class="card"><p>Accuracy</p><div class="stat" id="accuracy">100%</div></div>
+<div class="card"><p>Characters</p><div class="stat" id="chars">0</div></div>
+</div>
+
+<p class="muted">Type the following passage:</p>
+<div class="passage" id="passage"></div>
+<textarea id="typing" placeholder="Click Start Test..." disabled></textarea>
+<div class="progress"><div id="bar"></div></div>
+<div class="actions">
+<button class="primary" onclick="startTest()">▶ Start</button>
+<button onclick="resetTest()">↻ Restart</button>
+<button onclick="newPassage()">New Passage</button>
+</div>
+<div class="result" id="result">
+<h2>🎉 Test Completed!</h2>
+<p id="final"></p>
+<p id="mistakes"></p>
+<div class="actions">
+<button class="primary" onclick="certificate()">📄 Download Certificate</button>
+<button onclick="resetTest()">Try Again</button>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Keyboard Heatmap</h2>
+<p class="muted">Green = Correct | Red = Incorrect</p>
+<div id="keyboard" class="keyboard"></div>
+</div>
+</section>
+
+<!-- BOT -->
+<section id="bot" class="page">
+<div class="card">
+<h2>🤖 TypeBot - Your Personal Typing Coach</h2>
+<p class="muted">An offline rule-based practice assistant. No AI API required.</p>
+<div class="bot-layout">
+<div>
+<div class="chat" id="chat">
+<div class="message bot-msg">Hello! I am TypeBot. 👋 Let's improve your typing skills. Choose a practice level or ask for a suggestion.</div>
+</div>
+<div class="actions">
+<input id="botInput" placeholder="Ask TypeBot..." style="flex:1;min-width:150px">
+<button class="primary" onclick="sendBot()">Send</button>
+</div>
+</div>
+<div class="card">
+<h2>Practice shortcuts</h2>
+<div class="actions">
+<button onclick="botAction('beginner')">Beginner</button>
+<button onclick="botAction('intermediate')">Intermediate</button>
+<button onclick="botAction('advanced')">Advanced</button>
+<button onclick="botAction('speed')">Speed Tips</button>
+<button onclick="botAction('accuracy')">Accuracy Tips</button>
+<button onclick="botAction('weak')">Weak Keys</button>
+<button onclick="botAction('challenge')">Daily Goal</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- ACADEMY -->
+<section id="learn" class="page">
+<div class="card">
+<h2>Typing Academy</h2>
+<p class="muted">Learn keyboard skills step by step. Complete the lessons in order.</p>
+</div>
+<div class="lesson-grid" id="lessons"></div>
+</section>
+
+<!-- ADVANCED VIRTUAL KEYBOARD + FINGER TRAINER -->
+<section id="finger" class="page">
+<div class="card">
+<h2>🖐 Advanced Virtual Keyboard & Finger Trainer</h2>
+<p class="muted">Learn exactly which finger should press each key. The highlighted key and recommended finger update as you type.</p>
+
+<div class="settings">
+<div class="field"><label>Practice row</label>
+<select id="fingerLevel" onchange="startFingerDrill()">
+<option value="home">Home Row</option>
+<option value="top">Top Row</option>
+<option value="bottom">Bottom Row</option>
+<option value="all">All Letters</option>
+<option value="numbers">Number Row</option>
+<option value="punctuation">Punctuation</option>
+</select>
+</div>
+
+<div class="field"><label>Training style</label>
+<select id="fingerStyle" onchange="startFingerDrill()">
+<option value="guided">Guided - show next finger</option>
+<option value="memory">Memory - hide finger hint</option>
+</select>
+</div>
+
+<div class="field"><label>Exercise</label>
+<select id="fingerExercise" onchange="startFingerDrill()">
+<option value="keys">Key repetitions</option>
+<option value="words">Short words</option>
+<option value="sentences">Sentences</option>
+</select>
+</div>
+</div>
+
+<div class="grid">
+<div class="card"><p class="muted">Correct characters</p><div class="stat" id="fingerCorrect">0</div></div>
+<div class="card"><p class="muted">Accuracy</p><div class="stat" id="fingerAccuracy">100%</div></div>
+<div class="card"><p class="muted">Current finger</p><div class="stat" id="fingerCurrent" style="font-size:18px">—</div></div>
+<div class="card"><p class="muted">Exercise progress</p><div class="stat" id="fingerProgress">0%</div></div>
+</div>
+
+<div class="passage" id="fingerPassage">Select an exercise to begin.</div>
+<textarea id="fingerTyping" placeholder="Type the highlighted keys here..." oninput="updateFingerDrill()"></textarea>
+<div id="fingerFeedback" class="finger-status">Choose a practice row and start typing.</div>
+<div class="finger-board" id="fingerKeyboard"></div>
+
+<div class="finger-legend">
+<span class="finger-f1">Left little</span><span class="finger-f2">Left ring</span>
+<span class="finger-f3">Left middle</span><span class="finger-f4">Left index</span>
+<span class="finger-f5">Right index</span><span class="finger-f6">Right middle</span>
+<span class="finger-f7">Right ring</span><span class="finger-f8">Right little</span>
+<span style="background:#d9deeb">Both thumbs: Space</span>
+</div>
+</div>
+
+<div class="card">
+<h2>Hand & Finger Placement</h2>
+<div class="finger-layout">
+<div class="finger-hand">
+<h3>🤚 Left Hand</h3>
+<p>
+<span class="finger-f1">Little finger: Q, A, Z</span><br>
+<span class="finger-f2">Ring finger: W, S, X</span><br>
+<span class="finger-f3">Middle finger: E, D, C</span><br>
+<span class="finger-f4">Index finger: R, F, V, T, G, B</span>
+</p>
+</div>
+
+<div class="finger-hand">
+<h3>🤚 Right Hand</h3>
+<p>
+<span class="finger-f5">Index finger: Y, H, N, U, J, M</span><br>
+<span class="finger-f6">Middle finger: I, K, comma</span><br>
+<span class="finger-f7">Ring finger: O, L, full stop</span><br>
+<span class="finger-f8">Little finger: P, semicolon, slash, Enter</span>
+</p>
+</div>
+</div>
+
+<div class="finger-status">
+<b>Home row position:</b> Place left fingers on A S D F and right fingers on J K L ;.
+Keep both thumbs near the Spacebar. Return to the home row after reaching for other keys.
+</div>
+
+<p class="muted" style="margin-top:12px">
+Important: A normal laptop keyboard cannot tell which physical finger you used.
+TypePro can show the recommended finger and check the character you typed,
+but it cannot verify your actual finger movement.
+</p>
+</div>
+</section>
+
+<!-- WEAK KEYS -->
+<section id="weak" class="page">
+<div class="card">
+<h2>🎯 Weak Key Training</h2>
+<p class="muted">Practice your frequently incorrect keys.</p>
+<p id="weakInfo" style="margin:15px 0">Complete a typing test to identify weak keys.</p>
+<div id="weakPractice" class="passage">Your personalized practice will appear here.</div>
+<button class="primary" onclick="practiceWeak()">Generate Weak Key Exercise</button>
+<button onclick="copyWeak()">Copy Exercise</button>
+</div>
+</section>
+
+<!-- ANALYTICS -->
+<section id="analytics" class="page">
+<div class="card">
+<h2>📈 Typing Progress</h2>
+<div class="chart"><canvas id="graph"></canvas></div>
+</div>
+<div class="card">
+<h2>Coach Recommendations</h2>
+<p id="recommendations" class="muted">Complete tests to receive practice suggestions.</p>
+</div>
+</section>
+
+<!-- HISTORY -->
+<section id="history" class="page">
+<div class="card">
+<h2>Typing History</h2>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Date</th><th>WPM</th><th>Accuracy</th><th>Language</th></tr></thead>
+<tbody id="historyBody"></tbody>
+</table>
+</div>
+<div class="actions">
+<button onclick="exportCSV()">Export CSV</button>
+<button onclick="clearHistory()">Clear History</button>
+</div>
+</div>
+</section>
+
+<!-- CHALLENGE -->
+<section id="challenge" class="page">
+<div class="card">
+<h2>🏆 Daily Typing Challenge</h2>
+<p class="muted">Target: 30 WPM and 90% accuracy in 60 seconds.</p>
+<h3 id="challengeStatus" style="margin:20px 0">Challenge not completed.</h3>
+<button class="primary" onclick="startChallenge()">Start Challenge</button>
+</div>
+</section>
+
+</div>
+
+<footer>TypePro Ultimate © 2026 | Learn • Practice • Improve</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+
+const passages={
+en:{
+beginner:"Practice typing every day. Start slowly and focus on accuracy. Good typing skills help you work faster.",
+intermediate:"Technology is changing the world. Data science and computer programming create exciting opportunities.",
+advanced:"Effective communication, analytical thinking and consistent practice are essential professional skills.",
+expert:"In a rapidly evolving technological ecosystem, adaptability, precision and computational literacy are indispensable."
+},
+hi:{
+beginner:"रोज अभ्यास करें और अपनी टाइपिंग की गति और सटीकता बढ़ाएं।",
+intermediate:"कंप्यूटर का ज्ञान आज के समय में पढ़ाई और नौकरी के लिए उपयोगी है।",
+advanced:"नियमित अभ्यास और सही योजना से हम अपने कौशल को बेहतर बना सकते हैं।",
+expert:"आधुनिक तकनीकी वातावरण में ज्ञान, सटीकता और निरंतर सीखना महत्वपूर्ण है।"
+},
+mr:{
+beginner:"दररोज सराव करा आणि टायपिंगचा वेग व अचूकता वाढवा.",
+intermediate:"संगणकाचे ज्ञान आजच्या शिक्षण आणि नोकरीसाठी खूप उपयुक्त आहे.",
+advanced:"नियमित सराव आणि योग्य नियोजनामुळे आपण आपली कौशल्ये विकसित करू शकतो.",
+expert:"आधुनिक तंत्रज्ञानाच्या युगात ज्ञान, अचूकता आणि सतत शिकण्याची वृत्ती महत्त्वाची आहे."
+}
+};
+
+const special={
+numbers:"12345 67890 2026 456789 123456 987654 112233 998877",
+symbols:"! @ # $ % ^ & * ( ) _ + = { } [ ] ; : ? / < >",
+mixed:"TypePro2026! Practice#123 Learn@456 Improve_789"
+};
+
+let passage="",timer=null,started=false,finished=false;
+let startTime=0,duration=60,heat={},chart=null;
+let points=[],sound=true,challengeMode=false;
+let lastScore=null;
+
+function load(key,def){
+try{return JSON.parse(localStorage.getItem(key))??def}catch(e){return def}
+}
+
+function save(key,v){
+localStorage.setItem(key,JSON.stringify(v));
+}
+
+function history(){
+return load("typeHistory",[]);
+}
+
+function safe(s){
+return String(s).replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+}
+
+function tab(id,btn){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+$(id).classList.add("active");
+if(btn)btn.classList.add("active");
+if(id==="history")renderHistory();
+if(id==="analytics")drawGraph();
+}
+
+function toggleTheme(){
+document.body.classList.toggle("dark");
+localStorage.setItem("typeTheme",document.body.classList.contains("dark")?"dark":"light");
+drawGraph();
+}
+
+if(localStorage.getItem("typeTheme")==="dark"){
+document.body.classList.add("dark");
+}
+
+function toggleSound(){
+sound=!sound;
+$("soundBtn").textContent=sound?"🔊 Sound ON":"🔇 Sound OFF";
+}
+
+function beep(){
+if(!sound)return;
+try{
+const c=new AudioContext(),o=c.createOscillator(),g=c.createGain();
+o.connect(g);g.connect(c.destination);g.gain.value=.025;
+o.start();o.stop(c.currentTime+.05);
+}catch(e){}
+}
+
+function getDuration(){
+return $("duration").value==="custom"
+?Math.max(5,Math.min(3600,Number($("custom").value)||90))
+:Number($("duration").value);
+}
+
+$("duration").onchange=()=>{
+$("customBox").style.display=$("duration").value==="custom"?"block":"none";
+};
+
+$("font").onchange=()=>$("passage").style.fontSize=$("font").value;
+
+function newPassage(){
+if(started)return;
+let mode=$("mode").value,lang=$("lang").value,level=$("level").value;
+passage=mode==="normal"?passages[lang][level]:special[mode];
+if(mode==="mixed"&&lang!=="en")passage+=" "+passages[lang][level];
+$("passage").textContent=passage;
+resetTest();
+}
+
+["lang","level","mode"].forEach(id=>$(id).onchange=newPassage);
+
+function startTest(){
+if(started)return;
+resetTest();
+duration=getDuration();
+started=true;finished=false;startTime=Date.now();
+$("time").textContent=duration;
+$("typing").disabled=false;
+$("typing").focus();
+timer=setInterval(tick,250);
+}
+
+function tick(){
+if(!started)return;
+let elapsed=(Date.now()-startTime)/1000;
+$("time").textContent=Math.max(0,Math.ceil(duration-elapsed));
+updateStats();
+if(elapsed>=duration)finishTest();
+}
+
+$("typing").addEventListener("input",()=>{
+if(started&&!finished){beep();updateStats()}
+});
+
+$("typing").addEventListener("keydown",e=>{
+if(!started||e.key.length!==1||e.ctrlKey||e.altKey||e.metaKey)return;
+let index=$("typing").value.length;
+let k=e.key.toLowerCase();
+heat[k]??={good:0,bad:0};
+if(e.key===passage[index])heat[k].good++;
+else heat[k].bad++;
+renderKeyboard();
+});
+
+function updateStats(){
+if(!started)return;
+let t=$("typing").value;
+let elapsed=Math.max((Date.now()-startTime)/60000,1/60000);
+let correct=0;
+for(let i=0;i<t.length;i++)if(t[i]===passage[i])correct++;
+let accuracy=t.length?Math.round(correct/t.length*100):100;
+let wpm=Math.round(t.length/5/elapsed);
+$("wpm").textContent=wpm;
+$("accuracy").textContent=accuracy+"%";
+$("chars").textContent=t.length;
+$("bar").style.width=Math.min(100,t.length/passage.length*100)+"%";
+if(!points.length||Date.now()-points[points.length-1].time>1000){
+points.push({x:Math.round(elapsed*60),y:wpm,time:Date.now()});
+}
+if(t.length>=passage.length)finishTest();
+}
+
+function finishTest(){
+if(finished)return;
+finished=true;started=false;clearInterval(timer);
+$("typing").disabled=true;
+let t=$("typing").value;
+let elapsed=Math.max((Date.now()-startTime)/60000,1/60);
+let wpm=Math.round(t.length/5/elapsed);
+let correct=0,errors=[];
+for(let i=0;i<t.length;i++){
+if(t[i]===passage[i])correct++;
+else errors.push(i);
+}
+let accuracy=t.length?Math.round(correct/t.length*100):0;
+let typedWords=t.trim()?t.trim().split(/\s+/):[];
+let targetWords=passage.split(/\s+/);
+let right=0;
+typedWords.forEach((w,i)=>{if(w===targetWords[i])right++});
+let wrong=typedWords.length-right;
+lastScore={wpm,accuracy,errors,correct,wrong};
+$("result").style.display="block";
+$("final").textContent=`${wpm} WPM | ${accuracy}% Accuracy | ${t.length} Characters`;
+$("mistakes").textContent=`Correct words: ${right} | Incorrect words: ${wrong} | Character mistakes: ${errors.length}`;
+
+let h=history();
+h.unshift({date:new Date().toLocaleString(),wpm,accuracy,lang:$("lang").value});
+save("typeHistory",h.slice(0,100));
+
+if(wpm>Number(localStorage.getItem("typeBest")||0))
+localStorage.setItem("typeBest",wpm);
+
+if(challengeMode){
+if(wpm>=30&&accuracy>=90){
+localStorage.setItem("typeChallenge",new Date().toDateString());
+$("challengeStatus").textContent="🏆 Challenge completed!";
+}else $("challengeStatus").textContent="Not achieved. Keep practising!";
+challengeMode=false;
+}
+updateDashboard();
+drawGraph();
+updateRecommendations(wpm,accuracy);
+$("peakInfo");
+}
+
+function resetTest(){
+clearInterval(timer);
+started=false;finished=false;
+$("typing").value="";$("typing").disabled=true;
+$("result").style.display="none";
+duration=getDuration();$("time").textContent=duration;
+$("wpm").textContent=0;$("accuracy").textContent="100%";
+$("chars").textContent=0;$("bar").style.width="0%";
+heat={};points=[];renderKeyboard();drawGraph();
+}
+
+function renderKeyboard(){
+const rows=["1234567890","qwertyuiop","asdfghjkl;","zxcvbnm,./"];
+$("keyboard").innerHTML=rows.map(row=>'<div class="finger-row">'+[...row].map(k=>{
+let d=heat[k]||{good:0,bad:0};
+let cls=d.bad>d.good?"bad":d.good?"good":"";
+return `<div class="key ${cls}" title="Correct: ${d.good}, Incorrect: ${d.bad}">${k.toUpperCase()}<br><small>${d.good+d.bad||""}</small></div>`;
+}).join("")+'</div>').join("")+'<div class="finger-row"><div class="key space">SPACE</div></div>';
+}
+
+function updateDashboard(){
+let h=history();
+$("best").textContent=localStorage.getItem("typeBest")||0;
+$("total").textContent=h.length;
+$("avg").textContent=h.length?Math.round(h.reduce((s,x)=>s+x.wpm,0)/h.length):0;
+$("bestAcc").textContent=(h.length?Math.max(...h.map(x=>x.accuracy)):0)+"%";
+renderHistory();
+}
+
+function renderHistory(){
+$("historyBody").innerHTML=history().length?
+history().map(x=>`<tr><td>${safe(x.date)}</td><td>${x.wpm}</td><td>${x.accuracy}%</td><td>${safe(x.lang.toUpperCase())}</td></tr>`).join("")
+:"<tr><td colspan='4'>No tests completed yet.</td></tr>";
+}
+
+function clearHistory(){
+if(confirm("Delete saved typing history?")){
+localStorage.removeItem("typeHistory");
+localStorage.removeItem("typeBest");
+updateDashboard();
+}
+}
+
+function exportCSV(){
+let rows=[["Date","WPM","Accuracy","Language"],...history().map(x=>[x.date,x.wpm,x.accuracy,x.lang])];
+let csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+let a=document.createElement("a");
+let url=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+a.href=url;a.download="TypePro-History.csv";a.click();
+URL.revokeObjectURL(url);
+}
+
+function updateRecommendations(w,a){
+$("recommendations").textContent=
+a<90?"Your accuracy needs practice. Slow down and focus on correct keys.":
+w<30?"Your speed is developing. Practise home-row and common words.":
+w<50?"Good progress! Practise longer passages to improve consistency.":
+"Excellent performance! Try advanced and expert exercises.";
+}
+
+function drawGraph(){
+if(typeof Chart==="undefined"||!$("graph"))return;
+if(chart)chart.destroy();
+let h=history().slice(0,10).reverse();
+chart=new Chart($("graph"),{
+type:"line",
+data:{labels:h.map((x,i)=>"Test "+(i+1)),datasets:[{
+label:"WPM",data:h.map(x=>x.wpm),
+borderColor:"#6558e9",backgroundColor:"#6558e933",
+fill:true,tension:.3
+}]},
+options:{responsive:true,maintainAspectRatio:false}
+});
+}
+
+function certificate(){
+if(!lastScore)return alert("Complete a typing test first.");
+if(!window.jspdf)return alert("PDF library unavailable. Check internet connection.");
+const {jsPDF}=window.jspdf;
+let d=new jsPDF(),w=d.internal.pageSize.getWidth();
+d.setDrawColor(101,88,233);d.setLineWidth(2);d.rect(10,10,w-20,190);
+d.setFontSize(24);d.text("CERTIFICATE OF ACHIEVEMENT",w/2,45,{align:"center"});
+d.setFontSize(16);d.text("TypePro Typing Practice",w/2,65,{align:"center"});
+d.setFontSize(20);d.text("Typing Speed: "+lastScore.wpm+" WPM",w/2,110,{align:"center"});
+d.text("Accuracy: "+lastScore.accuracy+"%",w/2,130,{align:"center"});
+d.setFontSize(12);d.text("Date: "+new Date().toLocaleDateString(),w/2,160,{align:"center"});
+d.text("Keep Practising and Improving!",w/2,180,{align:"center"});
+d.save("TypePro-Certificate.pdf");
+}
+
+/* TYPEBOT */
+function botReply(message){
+let m=message.toLowerCase(),h=history();
+let best=Number(localStorage.getItem("typeBest")||0);
+let avg=h.length?Math.round(h.reduce((s,x)=>s+x.wpm,0)/h.length):0;
+
+if(m.includes("speed")||m.includes("fast"))
+return "For faster typing: practise 10 minutes daily, use all fingers, avoid looking at the keyboard and focus on accuracy first. Your best speed is "+best+" WPM.";
+
+if(m.includes("accuracy")||m.includes("mistake"))
+return "For better accuracy, slow down, practise difficult keys and review your mistakes. Try to maintain 95% accuracy before increasing speed.";
+
+if(m.includes("weak")||m.includes("key"))
+return "Open the Weak Keys section. It identifies keys with more mistakes from your previous tests and creates a focused exercise.";
+
+if(m.includes("beginner"))
+return "Beginner task: Practise home-row keys ASDF and JKL; for 5 minutes. Aim for accuracy before speed.";
+
+if(m.includes("advanced")||m.includes("expert"))
+return "Advanced task: Practise longer passages, punctuation and numbers. Focus on consistent rhythm.";
+
+if(m.includes("intermediate"))
+return "Intermediate task: Type complete sentences for 60 seconds. Try to reach 30 WPM with 95% accuracy.";
+
+if(m.includes("goal")||m.includes("challenge"))
+return "Today's suggested goal: 10 minutes of practice and one 60-second test. Your current average is "+avg+" WPM.";
+
+if(m.includes("result")||m.includes("progress"))
+return "Your current personal best is "+best+" WPM and your average is "+avg+" WPM across "+h.length+" tests.";
+
+if(m.includes("hello")||m.includes("hi"))
+return "Hello! Welcome to TypePro. Ask me about speed, accuracy, weak keys, lessons or your progress.";
+
+return "I can help with typing speed, accuracy, beginner lessons, advanced practice, weak keys and daily goals. Try asking: How can I type faster?";
+}
+
+function addMessage(txt,who){
+let div=document.createElement("div");
+div.className="message "+(who==="user"?"user-msg":"bot-msg");
+div.textContent=txt;
+$("chat").appendChild(div);
+$("chat").scrollTop=$("chat").scrollHeight;
+}
+
+function sendBot(){
+let input=$("botInput"),m=input.value.trim();
+if(!m)return;
+addMessage(m,"user");input.value="";
+setTimeout(()=>addMessage(botReply(m),"bot"),200);
+}
+
+$("botInput").addEventListener("keydown",e=>{
+if(e.key==="Enter")sendBot();
+});
+
+function botAction(action){
+let prompts={
+beginner:"Give me beginner practice",
+intermediate:"Give me intermediate practice",
+advanced:"Give me advanced practice",
+speed:"How can I improve my typing speed?",
+accuracy:"How can I improve my accuracy?",
+weak:"Tell me about weak keys",
+challenge:"Give me a daily goal"
+};
+addMessage(prompts[action],"user");
+addMessage(botReply(prompts[action]),"bot");
+}
+
+/* LESSONS */
+const lessonData=[
+["Home Row","asdf jkl; asdf jkl;"],
+["Top Row","qwerty uiop qwerty uiop"],
+["Bottom Row","zxcv bnm zxcv bnm"],
+["Common Words","the and for are with this that have"],
+["Numbers","12345 67890 2026 456789"],
+["Symbols","! @ # $ % ^ & * ( ) + ="],
+["Sentence Practice","Practice makes typing faster and more accurate."],
+["Office Practice","Please prepare the report and send the updated document."],
+["Advanced Practice","Analytical thinking and consistent professional communication are important."]
+];
+
+function buildLessons(){
+$("lessons").innerHTML=lessonData.map((x,i)=>
+`<div class="lesson"><h3>${i+1}. ${x[0]}</h3><p>Practise this typing exercise and improve your keyboard skills.</p><button onclick="startLesson(${i})">Start Lesson</button></div>`
+).join("");
+}
+
+function startLesson(i){
+passage=lessonData[i][1];
+$("passage").textContent=passage;
+$("mode").value="normal";
+resetTest();
+tab("test");
+}
+
+function practiceWeak(){
+let weak=Object.entries(heat).filter(([k,v])=>v.bad>v.good)
+.sort((a,b)=>b[1].bad-a[1].bad).map(x=>x[0]);
+
+if(!weak.length){
+$("weakInfo").textContent="No clear weak keys detected yet. Complete more tests or try a general exercise.";
+$("weakPractice").textContent="asdf jkl; qwerty uiop zxcv bnm";
+}else{
+$("weakInfo").textContent="Keys needing more practice: "+weak.join(", ").toUpperCase();
+$("weakPractice").textContent=Array(5).fill(weak.join(" ")).join(" | ");
+}
+}
+
+function copyWeak(){
+navigator.clipboard?.writeText($("weakPractice").textContent)
+.then(()=>alert("Exercise copied!"))
+.catch(()=>alert("Select and copy the exercise manually."));
+}
+
+function startChallenge(){
+$("duration").value="60";
+$("lang").value="en";$("level").value="intermediate";$("mode").value="normal";
+newPassage();
+challengeMode=true;
+tab("test");
+startTest();
+}
+
+function updateChallenge(){
+$("challengeStatus").textContent=localStorage.getItem("typeChallenge")===new Date().toDateString()
+?"🏆 Today's challenge completed!":"Not completed yet. Target: 30 WPM and 90% accuracy.";
+}
+
+$("typing").addEventListener("paste",e=>{
+if(started){e.preventDefault()}
+});
+
+/* ADVANCED FINGER TRAINER */
+const fingerMap={
+q:1,a:1,z:1,w:2,s:2,x:2,e:3,d:3,c:3,
+r:4,f:4,v:4,t:4,g:4,b:4,
+y:5,h:5,n:5,u:5,j:5,m:5,
+i:6,k:6,",":6,o:7,l:7,".":7,
+p:8,";":8,"/":8,
+"1":1,"2":2,"3":3,"4":4,"5":4,
+"6":5,"7":5,"8":6,"9":7,"0":8,
+"-":8,"=":8,"[":8,"]":8,"'":8
+};
+
+const fingerNames={
+1:"Left little finger",2:"Left ring finger",3:"Left middle finger",
+4:"Left index finger",5:"Right index finger",6:"Right middle finger",
+7:"Right ring finger",8:"Right little finger"
+};
+
+let fingerTarget="",fingerStartedAt=0;
+
+function fingerPassage(){
+const level=$("fingerLevel").value,style=$("fingerStyle").value,exercise=$("fingerExercise").value;
+
+const sets={
+home:{
+keys:"asdf jkl; asdf jkl; fj dk sl a;",
+words:"ask flask; sad; fall; dad; all;",
+sentences:"A sad lad asks dad. Fall and ask."
+},
+top:{
+keys:"qwerty uiop qwerty uiop",
+words:"type; write; quiet; power; route;",
+sentences:"Type your work with your fingers."
+},
+bottom:{
+keys:"zxcvbnm zxcvbnm",
+words:"zebra; box; cave; name; move;",
+sentences:"Move your fingers and type calmly."
+},
+all:{
+keys:"the quick brown fox jumps over the lazy dog",
+words:"quick brown fox jumps over lazy dog",
+sentences:"The quick brown fox jumps over the lazy dog."
+},
+numbers:{
+keys:"12345 67890 12345 67890",
+words:"2026 123 456 789 1000",
+sentences:"Room 204 has 18 desks and 30 chairs."
+},
+punctuation:{
+keys:"; , . / ' - = ; , . /",
+words:"hello, world. yes; no. well-known",
+sentences:"Hello, world! Are you ready? Yes, I am."
+}
+};
+
+return sets[level][exercise];
+}
+
+function startFingerDrill(){
+fingerTarget=fingerPassage();
+$("fingerPassage").textContent=fingerTarget;
+$("fingerTyping").value="";
+$("fingerCorrect").textContent="0";
+$("fingerAccuracy").textContent="100%";
+$("fingerCurrent").textContent="—";
+$("fingerProgress").textContent="0%";
+$("fingerFeedback").className="finger-status";
+$("fingerFeedback").textContent="Start typing. Follow the yellow highlighted key.";
+fingerStartedAt=0;
+renderFingerKeyboard(0);
+}
+
+function renderFingerKeyboard(position){
+const rows=["1234567890-=","qwertyuiop[]","asdfghjkl;'","zxcvbnm,./"];
+let html="";
+
+rows.forEach(row=>{
+html+='<div class="finger-row">';
+[...row].forEach(key=>{
+const finger=fingerMap[key]||8;
+const active=fingerTarget[position]?.toLowerCase()===key;
+const done=position>0&&fingerTarget.slice(0,position).toLowerCase().includes(key);
+const cls="finger-key finger-f"+finger+(active?" active":"")+(done?" done":"");
+html+=`<div class="${cls}" title="${fingerNames[finger]}">${key}<small>${finger}</small></div>`;
+});
+html+="</div>";
+});
+
+html+='<div class="finger-row"><div class="finger-key space">SPACE - BOTH THUMBS</div></div>';
+$("fingerKeyboard").innerHTML=html;
+
+const next=fingerTarget[position];
+const finger=next===" "?"Both thumbs (Spacebar)":fingerNames[fingerMap[(next||"").toLowerCase()]||8];
+$("fingerCurrent").textContent=next?finger:"Completed";
+}
+
+function updateFingerDrill(){
+const typed=$("fingerTyping").value;
+if(!fingerStartedAt&&typed.length)fingerStartedAt=Date.now();
+
+let correct=0,wrong=0;
+for(let i=0;i<typed.length;i++){
+if(typed[i]===fingerTarget[i])correct++;
+else wrong++;
+}
+
+const accuracy=typed.length?Math.round(correct/typed.length*100):100;
+$("fingerCorrect").textContent=correct;
+$("fingerAccuracy").textContent=accuracy+"%";
+$("fingerProgress").textContent=Math.min(100,Math.round(typed.length/fingerTarget.length*100))+"%";
+renderFingerKeyboard(typed.length);
+
+if(typed===fingerTarget){
+$("fingerFeedback").className="finger-status good";
+$("fingerFeedback").textContent="Excellent! Exercise completed. Correct characters: "+correct+". Accuracy: "+accuracy+"%.";
+}else{
+const next=fingerTarget[typed.length];
+const expected=next===" "?"Both thumbs (Spacebar)":fingerNames[fingerMap[(next||"").toLowerCase()]||8];
+const wrongAt=typed.length-1;
+const lastWasWrong=typed.length>0&&typed[wrongAt]!==fingerTarget[wrongAt];
+
+$("fingerFeedback").className="finger-status "+(lastWasWrong?"warn":"");
+$("fingerFeedback").textContent=lastWasWrong?
+"Check the character at position "+(wrongAt+1)+". Recommended finger for the next key: "+expected+".":
+"Next key: "+(next||"—")+" | Recommended finger: "+expected+".";
+}
+}
+
+buildLessons();
+newPassage();
+startFingerDrill();
+updateDashboard();
+renderKeyboard();
+updateChallenge();
+</script>
+</body>
+</html>
